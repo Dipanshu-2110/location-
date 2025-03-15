@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Employee Attendance</title>
+</head>
+<body>
+    <h2>Mark Attendance</h2>
+    <p><strong>Your Assigned Location:</strong> <span id="assignedLocation"></span></p>
+    <p><strong>Status:</strong> <span id="status">Checking...</span></p>
+    <button id="markAttendance" disabled>Mark Attendance</button>
+
+    <script>
+        function getDistance(lat1, lon1, lat2, lon2) {
+            let R = 6371; 
+            let dLat = (lat2 - lat1) * Math.PI / 180;
+            let dLon = (lon2 - lon1) * Math.PI / 180;
+            let a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                    Math.sin(dLon/2) * Math.sin(dLon/2);
+            let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c * 1000; 
+        }
+
+        function checkLocation() {
+            let employeeID = prompt("Enter Employee ID (101 for Office, 102 for Remote):");
+            let locationData;
+
+            // 🏢 Fixed location for Office Employees
+            if (employeeID === "101") { 
+                locationData = { name: "Main Office", latitude: 23.606665, longitude: 72.375386 };
+            } else {
+                // 🌍 Fetch location for Remote Employees from localStorage
+                locationData = localStorage.getItem(`location_${employeeID}`);
+                if (!locationData) {
+                    alert("❌ No location assigned for this employee!");
+                    document.body.innerHTML = "<h2>Access Denied</h2>";
+                    return;
+                }
+                locationData = JSON.parse(locationData);
+            }
+
+            document.getElementById("assignedLocation").innerText = locationData.name;
+
+            if (!navigator.geolocation) {
+                document.getElementById("status").innerText = "❌ Geolocation not supported.";
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(position => {
+                let empLat = position.coords.latitude;
+                let empLon = position.coords.longitude;
+                let accuracy = position.coords.accuracy;
+                let workLat = parseFloat(locationData.latitude);
+                let workLon = parseFloat(locationData.longitude);
+                let radius = 300;
+
+                let distance = getDistance(empLat, empLon, workLat, workLon);
+
+                if (distance <= radius && accuracy <= 100) { 
+                    document.getElementById("status").innerText = "✅ You are inside the workplace!";
+                    document.getElementById("markAttendance").disabled = false;
+                } else {
+                    document.getElementById("status").innerText = "❌ You are outside the workplace!";
+                    document.getElementById("markAttendance").disabled = true;
+                }
+            }, error => {
+                alert("❌ Error getting location: " + error.message);
+            }, {
+                enableHighAccuracy: true,
+                timeout: 15000,
+                maximumAge: 0
+            });
+        }
+
+        document.getElementById("markAttendance").addEventListener("click", function() {
+            alert("✅ Attendance Marked Successfully!");
+        });
+
+        checkLocation();
+    </script>
+</body>
+</html>

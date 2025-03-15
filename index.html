@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Panel</title>
+</head>
+<body>
+    <h2>Admin Panel</h2>
+    <h3>Set Location for Remote Employees</h3>
+    
+    <input type="text" id="placeName" placeholder="Enter Place Name">
+    <select id="employee">
+        <option value="102">Alice Smith (Remote)</option> <!-- Only remote employees here -->
+    </select>
+    <button onclick="setLocation()">Save Location</button>
+    
+    <p><strong>Saved Location:</strong> <span id="savedLocation">None</span></p>
+
+    <h3>Go to Employee Page</h3>
+    <button onclick="goToEmployeePage()">Go to Employee Page</button>
+
+    <script>
+        function setLocation() {
+            let place = document.getElementById("placeName").value;
+            let employeeID = document.getElementById("employee").value;
+
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${place}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.length === 0) {
+                    alert("❌ Location not found!");
+                    return;
+                }
+                let lat = parseFloat(data[0].lat);
+                let lon = parseFloat(data[0].lon);
+
+                localStorage.setItem(`location_${employeeID}`, JSON.stringify({ 
+                    name: place, latitude: lat, longitude: lon 
+                }));
+
+                document.getElementById("savedLocation").innerText = `${place} (Lat: ${lat}, Lon: ${lon})`;
+                alert("✅ Location Updated for Remote Employee!");
+            })
+            .catch(() => alert("❌ Error fetching location!"));
+        }
+
+        function goToEmployeePage() {
+            window.location.href = "employee_attendance.html";
+        }
+    </script>
+</body>
+</html>
