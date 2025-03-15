@@ -6,17 +6,20 @@
 <body>
     <h2>Admin Panel</h2>
     <h3>Set Location for Remote Employees</h3>
-    
+
     <input type="text" id="placeName" placeholder="Enter Place Name">
     <select id="employee">
         <option value="102">Alice Smith (Remote)</option> <!-- Only remote employees here -->
     </select>
     <button onclick="setLocation()">Save Location</button>
-    
+
     <p><strong>Saved Location:</strong> <span id="savedLocation">None</span></p>
 
     <h3>Go to Employee Page</h3>
     <button onclick="goToEmployeePage()">Go to Employee Page</button>
+
+    <h3>Enable Location</h3>
+    <button onclick="requestLocation()">Request Location Permission</button>
 
     <script>
         function setLocation() {
@@ -45,6 +48,26 @@
 
         function goToEmployeePage() {
             window.location.href = "employee_attendance.html";
+        }
+
+        function requestLocation() {
+            if (!navigator.geolocation) {
+                alert("❌ Geolocation is not supported by your browser.");
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                position => {
+                    alert(`✅ Location Access Granted! Lat: ${position.coords.latitude}, Lon: ${position.coords.longitude}`);
+                },
+                error => {
+                    if (error.code === error.PERMISSION_DENIED) {
+                        alert("❌ Location access denied. Enable it in browser settings.");
+                    } else {
+                        alert("❌ Error getting location: " + error.message);
+                    }
+                }
+            );
         }
     </script>
 </body>
